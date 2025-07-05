@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<!-- saved from url=(0022)http://127.0.0.1:5002/ -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Dashboard Inmobiliario Avanzado</title>
+    <script src="./Dashboard Inmobiliario_files/chart.js.descarga"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f8f9fa; color: #333; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1, h2 { color: #003366; }
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .metric-card { background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); text-align: center; }
+        .metric-card h3 { margin-top: 0; font-size: 1rem; color: #6c757d; }
+        .metric-card p { font-size: 2rem; font-weight: bold; margin: 10px 0 0 0; color: #0056b3; }
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .chart-container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); height: 450px; }
+        .full-width-container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #dee2e6; }
+        th { background-color: #e9ecef; }
+        tr:hover { background-color: #f1f3f5; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-bottom: 20px; }
+        button:hover { background: #0056b3; }
+        .loading { text-align: center; font-size: 1.5rem; padding: 50px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dashboard de Análisis para Inversión Inmobiliaria</h1>
+        <button onclick="actualizarDatos()">🔄 Actualizar Datos</button>
+        
+        <div id="loader" class="loading" style="display: none;">Cargando datos...</div>
+
+        <div id="dashboard-content" style="display: block;">
+            <div class="metrics" id="metrics">
+                <div class="metric-card">
+                    <h3>Total Propiedades</h3>
+                    <p>87</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Precio Promedio</h3>
+                    <p>$251,700.09</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Precio Promedio / m²</h3>
+                    <p>$1,712.85</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Superficie Promedio</h3>
+                    <p>227 m²</p>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <canvas id="topExpensiveChart" height="506" style="display: block; box-sizing: border-box; height: 450px; width: 645px;" width="725"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="topAffordableChart" height="506" style="display: block; box-sizing: border-box; height: 450px; width: 645px;" width="725"></canvas>
+                </div>
+            </div>
+
+            <div class="full-width-container">
+                <h2>Análisis por Tipo de Propiedad</h2>
+                <table id="propertyTypeTable">
+                    <thead>
+                        <tr>
+                            <th>Tipo de Propiedad</th>
+                            <th>Cantidad</th>
+                            <th>Precio Promedio (USD)</th>
+                            <th>Superficie Promedio (m²)</th>
+                            <th>Precio Promedio/m² (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Departamento</td>
+                        <td>53</td>
+                        <td>$205,638.4</td>
+                        <td>208 m²</td>
+                        <td>$1,584.58</td>
+                    </tr>
+                
+                    <tr>
+                        <td>Casa</td>
+                        <td>18</td>
+                        <td>$384,611.11</td>
+                        <td>293 m²</td>
+                        <td>$1,469.9</td>
+                    </tr>
+                
+                    <tr>
+                        <td>Terreno</td>
+                        <td>9</td>
+                        <td>$209,712.22</td>
+                        <td>260 m²</td>
+                        <td>$977.31</td>
+                    </tr>
+                
+                    <tr>
+                        <td>Local Comercial</td>
+                        <td>4</td>
+                        <td>$391,165.64</td>
+                        <td>205 m²</td>
+                        <td>$5,739.93</td>
+                    </tr>
+                
+                    <tr>
+                        <td>Otro</td>
+                        <td>2</td>
+                        <td>$204,500</td>
+                        <td>100 m²</td>
+                        <td>$2,229.4</td>
+                    </tr>
+                
+                    <tr>
+                        <td>Oficina</td>
+                        <td>1</td>
+                        <td>$215,000</td>
+                        <td>91 m²</td>
+                        <td>$2,362.64</td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+            
+            <div class="charts-grid">
+                 <div class="chart-container">
+                    <canvas id="facilitiesChart" height="506" style="display: block; box-sizing: border-box; height: 450px; width: 645px;" width="725"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="priceByBedroomsChart" height="506" style="display: block; box-sizing: border-box; height: 450px; width: 645px;" width="725"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const charts = {};
+
+        function formatCurrency(value) {
+            return value.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 });
+        }
+
+        function formatNumber(value) {
+            return Math.round(value).toLocaleString('en-US');
+        }
+
+        async function actualizarDatos() {
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('dashboard-content').style.display = 'none';
+            
+            try {
+                const response = await fetch('http://127.0.0.1:5002/api/dashboard_metrics');
+                if (!response.ok) {
+                    throw new Error(`Error en la respuesta de la API: ${response.statusText}`);
+                }
+                const data = await response.json();
+                
+                renderMetrics(data.general_metrics);
+                renderPropertyTypeTable(data.property_type_analysis);
+                
+                renderBarChart('topExpensiveChart', 'Top 5 Distritos más Caros por $/m²', data.districts.top_expensive_by_m2, 'neighborhood', 'price_per_m2_usd', 'rgba(217, 83, 79, 0.8)');
+                renderBarChart('topAffordableChart', 'Top 5 Distritos más Asequibles por $/m²', data.districts.top_affordable_by_m2, 'neighborhood', 'price_per_m2_usd', 'rgba(92, 184, 92, 0.8)');
+                renderBarChart('facilitiesChart', 'Top 10 Comodidades más Comunes', data.facilities_analysis, 'name', 'count', 'rgba(2, 117, 216, 0.8)', 'y');
+                renderLineChart('priceByBedroomsChart', 'Precio Promedio por N° de Dormitorios', data.price_feature_correlation.by_bedrooms, 'bedrooms', 'price_usd', 'rgba(240, 173, 78, 0.8)');
+                
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('dashboard-content').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                document.getElementById('loader').innerText = 'Error al cargar los datos. Por favor, intente de nuevo.';
+            }
+        }
+        
+        function renderMetrics(metrics) {
+            document.getElementById('metrics').innerHTML = `
+                <div class="metric-card">
+                    <h3>Total Propiedades</h3>
+                    <p>${formatNumber(metrics.total_properties)}</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Precio Promedio</h3>
+                    <p>${formatCurrency(metrics.average_price_usd)}</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Precio Promedio / m²</h3>
+                    <p>${formatCurrency(metrics.average_price_per_m2_usd)}</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Superficie Promedio</h3>
+                    <p>${formatNumber(metrics.average_m2)} m²</p>
+                </div>
+            `;
+        }
+        
+        function renderPropertyTypeTable(data) {
+            const tableBody = document.querySelector("#propertyTypeTable tbody");
+            tableBody.innerHTML = ''; // Limpiar tabla
+            data.forEach(item => {
+                const row = `
+                    <tr>
+                        <td>${item.property_type_name}</td>
+                        <td>${formatNumber(item.count)}</td>
+                        <td>${formatCurrency(item.avg_price_usd)}</td>
+                        <td>${item.avg_m2 ? formatNumber(item.avg_m2) + ' m²' : 'N/A'}</td>
+                        <td>${item.avg_price_per_m2_usd ? formatCurrency(item.avg_price_per_m2_usd) : 'N/A'}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        function renderBarChart(canvasId, title, data, labelKey, dataKey, color, axis = 'x') {
+            if (charts[canvasId]) charts[canvasId].destroy();
+            
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d[labelKey]),
+                    datasets: [{
+                        label: title,
+                        data: data.map(d => d[dataKey]),
+                        backgroundColor: color,
+                        borderColor: color.replace('0.8', '1'),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: axis,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: title, font: { size: 16 } },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        [axis === 'x' ? 'y' : 'x']: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function renderLineChart(canvasId, title, data, labelKey, dataKey, color) {
+            if (charts[canvasId]) charts[canvasId].destroy();
+
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d[labelKey]),
+                    datasets: [{
+                        label: 'Precio Promedio USD',
+                        data: data.map(d => d[dataKey]),
+                        backgroundColor: color.replace('0.8', '0.2'),
+                        borderColor: color,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                 options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: title, font: { size: 16 } },
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+        
+        // Cargar datos al iniciar la página
+        document.addEventListener('DOMContentLoaded', actualizarDatos);
+    </script>
+
+</body></html>
