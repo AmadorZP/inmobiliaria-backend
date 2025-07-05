@@ -3,7 +3,7 @@ service: inmobiliaria-api
 app: luisitocomunica
 org: luisitocomunica
 
-frameworkVersion: '3'
+frameworkVersion: '4'
 
 provider:
   name: aws
