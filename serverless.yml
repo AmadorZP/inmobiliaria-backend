@@ -1,4 +1,4 @@
-# serverless.yml
+# serverless.yml (versión corregida)
 service: inmobiliaria-api
 app: luisitocomunica
 org: luisitocomunica
@@ -8,28 +8,30 @@ frameworkVersion: '4'
 provider:
   name: aws
   runtime: python3.9
-  region: us-east-1 # Puedes cambiar esto a tu región preferida
+  region: us-east-1
   memorySize: 1024
   timeout: 20
-  # Permisos que necesitará nuestra función Lambda
-  iam:
-    role:
-      statements:
-        - Effect: "Allow"
-          Action:
-            - "dynamodb:Scan"
-            - "dynamodb:GetItem"
-          Resource: "arn:aws:dynamodb:us-east-1:637423185634:table/properties" # ¡IMPORTANTE! Reemplaza la región y tu ID de cuenta si es necesario
+
+  # --- INICIO CORRECCIÓN 1: Configuración de CORS para v4 ---
+  # Se mueve la configuración de CORS aquí
+  httpApi:
+    cors: true
+  # --- FIN CORRECCIÓN 1 ---
+
+  # --- INICIO CORRECCIÓN 2: Usar un rol de IAM existente ---
+  # Se elimina la sección "iam:" y se reemplaza con "role:"
+  # Pega aquí el ARN del rol que encontraste en el Paso 1
+  role: arn:aws:iam::637423185634:role/LabRole
+  # --- FIN CORRECCIÓN 2 ---
 
 functions:
   getDashboardMetrics:
-    handler: handler.get_dashboard_metrics # Archivo handler.py, función get_dashboard_metrics
+    handler: handler.get_dashboard_metrics
     events:
       - httpApi:
           path: /metrics
           method: get
-          # Habilitar CORS para que tu S3 pueda llamar a esta API
-          cors: true
+          # La propiedad "cors: true" se elimina de aquí
 
 # Plugin para empaquetar las dependencias de Python
 plugins:
@@ -37,4 +39,4 @@ plugins:
 
 custom:
   pythonRequirements:
-    dockerizePip: true # Usa Docker para compilar librerías complejas como pandas
+    dockerizePip: true
