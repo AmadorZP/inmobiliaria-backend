@@ -2,19 +2,17 @@
 import json
 import decimal
 import pandas as pd
-import numpy as np # Se añade la importación de numpy
+import numpy as np
 from collections import Counter
 from data_service import get_data_service
 
 # Se inicializa el servicio una vez para que pueda ser reutilizado en ejecuciones "cálidas" de Lambda
 data_service = get_data_service()
 
-# Este helper es necesario porque DynamoDB devuelve números como tipo Decimal,
-# que json.dumps() no sabe manejar por defecto.
+# ... (El resto de la clase DecimalEncoder no cambia)
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, decimal.Decimal):
-            # Convertir a float o int dependiendo de si tiene decimales
             if o % 1 > 0:
                 return float(o)
             else:
@@ -43,24 +41,28 @@ def get_dashboard_metrics(event, context):
                 "body": json.dumps({"message": "No hay propiedades en la base de datos."})
             }
 
-        # --- INICIO DE LAS MEJORAS INTEGRADAS DESDE app.py ---
+        # --- INICIO DE LA CORRECCIÓN ---
+        # Se convierten explícitamente las columnas de Decimal a un tipo numérico
+        # que pandas pueda utilizar para operaciones matemáticas. Esta es la solución al error.
+        properties_df['m2'] = pd.to_numeric(properties_df['m2'], errors='coerce')
+        properties_df['price_usd'] = pd.to_numeric(properties_df['price_usd'], errors='coerce')
+        properties_df.dropna(subset=['m2', 'price_usd'], inplace=True) # Elimina filas si la conversión falló
+        # --- FIN DE LA CORRECCIÓN ---
+
 
         # 2. Recalcular la columna 'price_per_m2_usd' para asegurar la precisión
-        # Se reemplazan los m2=0 con NaN para evitar divisiones por cero
         m2_for_calc = properties_df['m2'].replace(0, np.nan) 
         properties_df['price_per_m2_usd'] = properties_df['price_usd'] / m2_for_calc
         properties_df['price_per_m2_usd'].replace([np.inf, -np.inf], np.nan, inplace=True)
         properties_df['price_per_m2_usd'].fillna(0, inplace=True)
         
         # 3. Filtrado de Outliers
-        # Se definen límites razonables para filtrar datos que puedan distorsionar los promedios.
         min_m2 = 15
         min_price_per_m2 = 50
         max_price_per_m2 = 15000
         
         initial_count = len(properties_df)
         
-        # Aplicamos los filtros
         properties_df_filtered = properties_df[
             (properties_df['m2'] >= min_m2) &
             (properties_df['price_per_m2_usd'] >= min_price_per_m2) &
@@ -68,10 +70,9 @@ def get_dashboard_metrics(event, context):
         ].copy()
         
         filtered_count = len(properties_df_filtered)
-        # Este log es útil para verificar el efecto del filtro en CloudWatch
         print(f"Filtrado de outliers: Se pasó de {initial_count} a {filtered_count} propiedades.")
-
-        # --- FIN DE LAS MEJORAS ---
+        
+        # ... (El resto del archivo no cambia, todos los cálculos posteriores funcionarán correctamente)
         
         # 4. A partir de aquí, todos los cálculos de análisis usan el DataFrame filtrado
 
@@ -81,7 +82,6 @@ def get_dashboard_metrics(event, context):
         avg_m2 = properties_df_filtered['m2'].mean()
         avg_price_per_m2_usd = properties_df_filtered['price_per_m2_usd'].mean()
 
-        # Manejar posibles valores NaN para que JSON no falle
         if pd.isna(avg_price_usd): avg_price_usd = 0
         if pd.isna(avg_m2): avg_m2 = 0
         if pd.isna(avg_price_per_m2_usd): avg_price_per_m2_usd = 0
@@ -137,7 +137,6 @@ def get_dashboard_metrics(event, context):
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Credentials": True
             },
-            # Se usa el DecimalEncoder actualizado que también maneja tipos de numpy
             "body": json.dumps(response_data, cls=DecimalEncoder)
         }
 
