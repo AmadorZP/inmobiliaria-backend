@@ -1,0 +1,40 @@
+# serverless.yml
+service: inmobiliaria-api
+app: luisitocomunica
+org: luisitocomunica
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: us-east-1 # Puedes cambiar esto a tu región preferida
+  memorySize: 1024
+  timeout: 20
+  # Permisos que necesitará nuestra función Lambda
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "dynamodb:Scan"
+            - "dynamodb:GetItem"
+          Resource: "arn:aws:dynamodb:us-east-1:637423185634:table/properties" # ¡IMPORTANTE! Reemplaza la región y tu ID de cuenta si es necesario
+
+functions:
+  getDashboardMetrics:
+    handler: handler.get_dashboard_metrics # Archivo handler.py, función get_dashboard_metrics
+    events:
+      - httpApi:
+          path: /metrics
+          method: get
+          # Habilitar CORS para que tu S3 pueda llamar a esta API
+          cors: true
+
+# Plugin para empaquetar las dependencias de Python
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: true # Usa Docker para compilar librerías complejas como pandas
